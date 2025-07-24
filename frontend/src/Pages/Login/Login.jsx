@@ -4,6 +4,8 @@ import "./Login.css";
 import { NavLink, useNavigate } from "react-router-dom";
 import Radiobtn from "../Components/RadioBtn/Radiobtn";
 import Header from "../Home/Header/Header";
+const baseURL = import.meta.env.VITE_BACKEND_URL;
+
 
 export default function Login() {
   // State to hold user input and errors
@@ -14,7 +16,7 @@ export default function Login() {
   const [err, setErr] = useState('');
 
 
-  const navigate = useNavigate()
+  const navigate=useNavigate()
 
   // Function to handle form submission
   const handleSubmit = async (e) => {
@@ -57,41 +59,41 @@ export default function Login() {
       });
 
       const responesData = await response.json()
-      if (responesData.message != 'Logged in') {
+      if(responesData.message != 'Logged in'){
         setErr(responesData.message);
       }
       const userid = responesData.data.user._id
-
+ 
       // Handle response
       if (response.ok) {
         // Authentication successful, you can redirect or do something else
         console.log("Login successful");
         console.log(responesData.data.user.Isapproved);
-
-
-        if (responesData.data.user.Isapproved === "pending") {
-          if (responesData.data.user.Teacherdetails || responesData.data.user.Studentdetails) {
+        
+        
+        if(responesData.data.user.Isapproved === "pending"){
+          if(responesData.data.user.Teacherdetails || responesData.data.user.Studentdetails){
             navigate('/pending')
-          } else {
-            if (userType === 'student') {
+          }else{
+            if(userType === 'student'){
               navigate(`/StudentDocument/${userid}`)
-            } else if (userType === 'teacher') {
+            }else if(userType === 'teacher'){
               navigate(`/TeacherDocument/${userid}`)
             }
           }
-        } else if (responesData.data.user.Isapproved === "approved") {
-          if (userType === 'student') {
+        }else if(responesData.data.user.Isapproved === "approved"){
+          if(userType === 'student'){
             navigate(`/Student/Dashboard/${userid}/Search`)
-          } else if (userType === 'teacher') {
+          }else if(userType === 'teacher'){
             navigate(`/Teacher/Dashboard/${userid}/Home`)
           }
-        } else if (responesData.data.user.Isapproved === "reupload") {
-          if (userType === 'teacher') {
+        }else if(responesData.data.user.Isapproved === "reupload"){
+          if(userType === 'teacher'){
             navigate(`/rejected/${userType}/${userid}`)
-          } else {
+          }else{
             navigate(`/rejected/${userType}/${userid}`)
           }
-        } else {
+        }else{
           setErr('You are ban from our platform!');
         }
 
@@ -113,102 +115,94 @@ export default function Login() {
         setErrors({ general: "An unexpected error occurred" });
       }
     } catch (error) {
-
+   
       setErrors(error.message);
     }
   };
 
   return (
     <>
-      <Header />
-      <section className="main">
-        <div className="container">
-          {/* <div className="logo">
+    <Header/>
+    <section className="main">
+      <div className="container">
+        {/* <div className="logo">
           <img src="" alt="" />
           <h1 className="head">Logo</h1>
         </div> */}
-          {/* headings */}
-          <div className="para1">
-            <h2> WELCOME BACK!</h2>
-          </div>
+        {/* headings */}
+        <div className="para1">
+          <h2> WELCOME BACK!</h2>
+        </div>
 
-          <div className="para">
-            <h5> Please Log Into Your Account.</h5>
-          </div>
+        <div className="para">
+          <h5> Please Log Into Your Account.</h5>
+        </div>
 
-          <div className="form">
-            <form onSubmit={handleSubmit}>
-              <div className="input-1">
-                <input
-                  type="text"
-                  placeholder="Email Address"
-                  className="input-0"
-                  value={Email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                {errors.email && (
-                  <div className="error-message">{errors.email}</div>
-                )}
-              </div>
-              <div className="input-2">
-                <input
-                  type="password"
-                  placeholder="Password"
-                  className="input-0"
-                  value={Password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                {errors.password && (
-                  <div className="error-message">{errors.password}</div>
-                )}
-              </div>
-
-              {/* radio buttons */}
-              <div className="radio-btn">
-                <Radiobtn userType={userType} setUserType={setUserType} />
-              </div>
-
-              <div className="signup-link">
-                <span>Don't have an account? </span>
-                <NavLink to="/signup" className="link text-yellow-400 text-semibold text-md ">
-                  signup
-                </NavLink>
-              </div>
-
-              <div className="text-yellow-400 text-semibold pt-3 cursor-pointer" onClick={() => navigate('/forgetpassword')} >
-                Forget Password?
-              </div>
-
-              {/* btns */}
-              <div className="btns">
-                <button type="submit" className="btns-1">
-                  Log In
-                </button>
-              </div>
-              <button
-              type="button"
-              className="admin-login-btn"
-              onClick={() => navigate('/adminLogin')}
-              >
-                Login As Admin
-              </button>
-
-              {err != '' && (
-                <p className="text-red-400 text-sm">{err}</p>
+        <div className="form">
+          <form onSubmit={handleSubmit}>
+            <div className="input-1">
+              <input
+                type="text"
+                placeholder="Email Address"
+                className="input-0"
+                value={Email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {errors.email && (
+                <div className="error-message">{errors.email}</div>
               )}
-              {/* {errors.general && (
+            </div>
+            <div className="input-2">
+              <input
+                type="password"
+                placeholder="Password"
+                className="input-0"
+                value={Password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              {errors.password && (
+                <div className="error-message">{errors.password}</div>
+              )}
+            </div>
+
+            {/* radio buttons */}
+            <div className="radio-btn">
+              <Radiobtn  userType={userType} setUserType={setUserType}  />
+            </div>
+
+            <div className="signup-link">
+              <span>Don't have an account? </span>
+              <NavLink to="/signup" className="link text-yellow-400 text-semibold text-md ">
+                signup
+              </NavLink>
+            </div>
+
+            <div className="text-yellow-400 text-semibold pt-3 cursor-pointer" onClick={()=>navigate('/forgetpassword')} >
+              Forget Password?
+            </div>
+
+            {/* btns */}
+            <div className="btns">
+              <button type="submit" className="btns-1">
+                Log In
+              </button>
+            </div>
+            {err != '' && (
+              <p className="text-red-400 text-sm">{err}</p>
+            )}
+            {/* {errors.general && (
               <div className="error-message">{errors.general}</div>
             )} */}
-            </form>
-          </div>
+          </form>
         </div>
+      </div>
 
-        {/* image */}
-        <div className="img-3">
-          <img src={HR} width={600} alt="" />
-        </div>
-      </section>
+      {/* image */}
+      <div className="img-3">
+        <img src={HR} width={600} alt="" />
+      </div>
+    </section>
     </>
   );
-
+ 
 }

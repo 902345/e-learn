@@ -3,6 +3,8 @@ import "./Login.css";
 import Admin from './Images/Admin.svg'
 import {  useNavigate } from "react-router-dom";
 import Header from '../Home/Header/Header';
+const baseURL = import.meta.env.VITE_BACKEND_URL;
+
 
 export default function AdminLogin() {
   // State to hold user input and errors
@@ -41,8 +43,13 @@ export default function AdminLogin() {
     };
 
     try {
+      if (!baseURL) {
+          console.error("VITE_BACKEND_URL is not defined!");
+      } else {
+          console.log("Using Backend URL:", baseURL);
+      }
       // Send data to backend
-      const response = await fetch(`/api/admin/login`, {
+      const response = await fetch(`${baseURL}/api/admin/login`, {
         method: 'POST',
         credentials: "include",
         headers: {

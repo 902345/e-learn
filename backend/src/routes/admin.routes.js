@@ -4,6 +4,11 @@ import { authAdmin } from "../middlewares/adminAuth.middleware.js";
 
 const router = Router()
 
+router.use((req, res, next) => {
+    console.log(`[Admin Router] Incoming Request: ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 router.route("/signup").post(adminSignUp)
 
 router.route("/login").post(adminLogin)
