@@ -4,6 +4,7 @@ import { NavLink, useNavigate, useParams } from "react-router-dom";
 import logo from '../../Images/logo.svg'
 import Course from "./Course";
 import axios from "axios";
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const Admin = () => {
   const { data } = useParams();
@@ -19,7 +20,7 @@ const Admin = () => {
   useEffect(()=>{
     const getAllMsg = async () => {
       try {
-        const response = await fetch(`/api/admin/messages/all`, {
+        const response = await fetch(`${baseURL}/admin/messages/all`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -42,7 +43,7 @@ const Admin = () => {
         Isapproved : approve
       }
 
-      const response = await fetch(`/api/admin/${adminID}/approve/${type}/${ID}`, {
+      const response = await fetch(`${baseURL}/admin/${adminID}/approve/${type}/${ID}`, {
         method: 'POST',
         headers: {
           "Content-Type": "application/json",
@@ -71,7 +72,7 @@ const Admin = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await fetch(`/api/admin/${data}/approve`, {
+        const response = await fetch(`${baseURL}/admin/${data}/approve`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

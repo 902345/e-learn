@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import Images from "../Images/Grammar-correction.svg";
 import Radiobtn from "../Components/RadioBtn/Radiobtn";
 import Header from "../Home/Header/Header";
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const Signup = () => {
   // State to hold user input and errors
@@ -66,8 +67,8 @@ const Signup = () => {
     try {
       // ✅ FIXED: Use dynamic endpoint based on userType
       const endpoint = userType === 'student' 
-        ? `http://localhost:5000/api/student/signup`
-        : `http://localhost:5000/api/teacher/signup`;
+        ? `${baseURL}/api/student/signup`
+        : `${baseURL}/api/teacher/signup`;
 
       console.log('Signup request:', { userType, endpoint, data });
 

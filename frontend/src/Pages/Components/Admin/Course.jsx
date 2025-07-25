@@ -3,6 +3,7 @@ import axios from 'axios';
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import logo from '../../Images/logo.svg'
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const Course = () => {
   const [courseReq, setCourseReq] = useState([]);
@@ -44,7 +45,7 @@ const Course = () => {
   useEffect(() => {
     const fetchCourseRequests = async () => {
       try {
-        const response = await axios.get(`/api/admin/${data}/approve/course`);
+        const response = await axios.get(`${baseURL}/admin/${data}/approve/course`);
         console.log("dtat",response.data.data);
         setCourseReq(response.data.data);
       } catch (error) {
@@ -59,7 +60,7 @@ const Course = () => {
   // const handleAccept = async (id,info) => {
   //   console.log(id);
   //   try {
-  //     const response = await fetch(`/api/admin/${data}/approve/course/${id}`, {
+  //     const response = await fetch(`/admin/${data}/approve/course/${id}`, {
   //       method: 'POST',
   //       headers: {
   //         "Content-Type": "application/json",
@@ -85,7 +86,7 @@ const Course = () => {
     console.log(id);
     console.log(info.Email)
     try {
-      const response = await axios.post(`/api/admin/${data}/approve/course/${id}`, {
+      const response = await axios.post(`${baseURL}/admin/${data}/approve/course/${id}`, {
         Isapproved: true,
         email: info.Email,
         Firstname: info.enrolledteacher,
@@ -110,7 +111,7 @@ const Course = () => {
   const handleReject = async (id, info) => {
     console.log(id, info);
     try {
-      const response = await axios.post(`/api/admin/${data}/approve/course/${id}`, {
+      const response = await axios.post(`${baseURL}/admin/${data}/approve/course/${id}`, {
         Isapproved: false,
         email: info.Email,
         Firstname: info.enrolledteacher,
@@ -134,7 +135,7 @@ const Course = () => {
   // const handleReject = async (id,info) => {
   //   console.log(id,info);
   //   try {
-  //     const response = await fetch(`/api/admin/${data}/approve/course/${id}`, {
+  //     const response = await fetch(`admin/${data}/approve/course/${id}`, {
   //       method: 'POST',
   //       headers: {
   //         "Content-Type": "application/json",

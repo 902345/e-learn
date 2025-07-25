@@ -4,6 +4,7 @@ import InputUpload from "../DocumentVerification/Inputupload/InputUpload.jsx";
 import { useNavigate, useParams } from "react-router-dom";
 import { RotatingLines } from "react-loader-spinner";
 import logo from "../../Images/logo.svg";
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const TeacherDocument = () => {
   const [data, setData] = useState([]);
@@ -15,7 +16,7 @@ const TeacherDocument = () => {
   useEffect(() => {
     const getData = async () => {
       try {
-        const response = await fetch(`/api/teacher/TeacherDocument/${Data}`, {
+        const response = await fetch(`${baseURL}/teacher/TeacherDocument/${Data}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -80,7 +81,7 @@ const TeacherDocument = () => {
     });
 
     try {
-      const response = await fetch(`/api/teacher/verification/${Data}`, {
+      const response = await fetch(`${baseURL}/teacher/verification/${Data}`, {
         method: "POST",
         body: formDataObj,
       });

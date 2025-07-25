@@ -3,6 +3,7 @@ import Email from '../../Images/email.svg'
 import { NavLink } from "react-router-dom"
 import Header from '../../Home/Header/Header'
 
+
 function VarifyEmail() {
   return (
     <>

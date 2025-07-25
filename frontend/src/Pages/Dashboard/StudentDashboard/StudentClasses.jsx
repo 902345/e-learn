@@ -2,6 +2,7 @@ import React,{ useEffect, useState } from 'react'
 import Camera from '../Images/Camera.png'
 import Clock from '../Images/Clock.png'
 import { NavLink, useParams } from 'react-router-dom'
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 function StudentClasses() {
     const { ID } = useParams();
@@ -10,7 +11,7 @@ function StudentClasses() {
     useEffect(() => {
         const getData = async () => {
           try {
-            const response = await fetch(`/api/course/classes/student/${ID}`, {
+            const response = await fetch(`${baseURL}/course/classes/student/${ID}`, {
               method: 'GET',
               headers: {
                 'Content-Type': 'application/json',

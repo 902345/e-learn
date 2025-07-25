@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 function VarifyDoc() {
     const { type, adminID, ID } = useParams();
@@ -21,7 +22,7 @@ function VarifyDoc() {
                 email: email,
             }
 
-            const response = await fetch(`http://localhost:5000/api/admin/${adminID}/approve/${type}/${id}`, {
+            const response = await fetch(`${baseURL}/api/admin/${adminID}/approve/${type}/${id}`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -59,7 +60,7 @@ function VarifyDoc() {
             
             console.log('Fetching data for:', { type, adminID, ID });
             
-            const url = `http://localhost:5000/api/admin/${adminID}/documents/${type}/${ID}`;
+            const url = `${baseURL}/api/admin/${adminID}/documents/${type}/${ID}`;
             console.log('URL being called:', url);
 
             const docData = await fetch(url, {
@@ -101,7 +102,7 @@ function VarifyDoc() {
 
     // Debug information (remove in production)
     console.log('Current state:', { type, data, loading, error });
-    console.log('URL being called:', `http://localhost:5000/api/admin/${adminID}/documents/${type}/${ID}`);
+    console.log('URL being called:', `${baseURL}/api/admin/${adminID}/documents/${type}/${ID}`);
     console.log('Parameters:', { type, adminID, ID });
 
     return (
