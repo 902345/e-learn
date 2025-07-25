@@ -17,7 +17,6 @@ const Signup = () => {
 
   const navigate = useNavigate()
 
-
   // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,6 +44,11 @@ const Signup = () => {
       newErrors.password = 'Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character.';
     }
 
+    // ✅ ADD VALIDATION: Check if user type is selected
+    if (!userType || (userType !== 'student' && userType !== 'teacher')) {
+      newErrors.userType = 'Please select whether you are a student or teacher';
+    }
+
     if (Object.keys(newErrors).length > 0) {
       // Update the errors state and prevent form submission
       setErrors(newErrors);
@@ -60,8 +64,15 @@ const Signup = () => {
     };
 
     try {
-      // Send data to backend (you need to implement this part)
-      const response = await fetch(`http://localhost:5000/api/teacher/signup`, {
+      // ✅ FIXED: Use dynamic endpoint based on userType
+      const endpoint = userType === 'student' 
+        ? `http://localhost:5000/api/student/signup`
+        : `http://localhost:5000/api/teacher/signup`;
+
+      console.log('Signup request:', { userType, endpoint, data });
+
+      // Send data to backend
+      const response = await fetch(endpoint, {
         method: "POST",
         mode: "cors",
         credentials: "include",
@@ -89,7 +100,6 @@ const Signup = () => {
       }
     } catch (error) {
       setErrors(error.message);
-     
     }
   };
 
@@ -98,10 +108,6 @@ const Signup = () => {
     <Header/>
     <div className="section">
       <article className="article">
-        {/* <div className="logo-1">
-          <img src="" alt="" />
-          <h4 className="logo-head">logo</h4>
-        </div> */}
         <div className="header">
           <h3 className="head">WELCOME</h3>
           <h4 className="Sub-head">join us today !!</h4>
@@ -156,6 +162,17 @@ const Signup = () => {
             <div className="rad-btns">
               <Radiobtn userType={userType} setUserType={setUserType}/>
             </div>
+            {/* ✅ ADD ERROR MESSAGE: For user type validation */}
+            {errors.userType && (
+              <div className="error-message">{errors.userType}</div>
+            )}
+
+            {/* ✅ ADD DEBUG INFO: Show selected user type */}
+            {process.env.NODE_ENV === 'development' && userType && (
+              <div style={{ color: 'blue', fontSize: '12px', margin: '5px 0' }}>
+                Selected: {userType}
+              </div>
+            )}
 
             <div className="signupage">
               <span>Already have an account? </span>

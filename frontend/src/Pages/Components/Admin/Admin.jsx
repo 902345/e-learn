@@ -9,14 +9,12 @@ const Admin = () => {
   const { data } = useParams();
   const navigator = useNavigate();
 
-
   const [StudentData, setStudentData] = useState([]);
   const [TeacherData, setTeacherData] = useState([]);
   const [adminID, setAdminID] = useState(null);
   const [error, setErrors] = useState("");
   const [allmsg, setAllMsg] = useState(null);
   const [open, setOpen] = useState(false);
-
 
   useEffect(()=>{
     const getAllMsg = async () => {
@@ -52,13 +50,10 @@ const Admin = () => {
         body: JSON.stringify(data),
       });
 
-   
       if(type == "student"){
         setStudentData(pre => pre.filter((pre) => pre._id !== ID));
-
       }else if(type == "teacher"){
         setTeacherData(pre => pre.filter((pre) => pre._id !== ID));
-
       }
 
     } catch (error) {
@@ -66,10 +61,12 @@ const Admin = () => {
     }
   }
 
-  const docDetails = async (type, ID) =>{
+  // ✅ FIXED: Corrected the URL format to match your route params
+  const docDetails = async (type, ID) => {
+    console.log('Navigating to:', `/VarifyDoc/${type}/${adminID}/${ID}`);
+    console.log('Parameters:', { type, adminID, ID });
     navigator(`/VarifyDoc/${type}/${adminID}/${ID}`);
   }
-
 
   useEffect(() => {
     const getData = async () => {
@@ -96,18 +93,6 @@ const Admin = () => {
     };
     getData();
   }, []);
-
-
-
-  
-
-
-
-
-
-
-
-
 
   return (
     <div className="h-[100vh]">
@@ -150,7 +135,7 @@ const Admin = () => {
             <h4 className="text-white bg-blue-800 p-4 w-44">Course Requests</h4>
         </div>
 
-        {open && (
+        {open && allmsg && (
           <div className="mt-3 w-[30rem] absolute right-10 bg-gray-700 text-gray-100 p-5">
             {allmsg.map((msg,index) => (
               <div key={index} className="bg-gray-600 mb-5 rounded-sm p-2">
@@ -159,21 +144,22 @@ const Admin = () => {
                 <p><span className="text-black">Message : </span>{msg.message}</p>
               </div>
             ))}
-
           </div>
         )}
-</div>
+      </div>
        
-      
       <div className="flex items-start justify-center gap-20">
         <div className="rounded-md">
           <h4 className="text-white bg-blue-gray-900 p-4 w-40">Student Request</h4>
           {
-            StudentData.length > 0 ? StudentData.map((student) => (
+            StudentData && StudentData.length > 0 ? StudentData.map((student) => (
               student.Isapproved === "pending" && (
                 <div
                   key={student._id}
-                  onClick={() => docDetails("student", student._id)}
+                  onClick={() => {
+                    console.log('Clicking student:', student._id, 'Type: student');
+                    docDetails("student", student._id);
+                  }}
                   className="flex justify-around items-center mt-8 p-8 bg-blue-gray-600 rounded-md cursor-pointer"
                 >
                   <h1 className="text-[24px] text-1xl text-white mr-3">
@@ -182,18 +168,21 @@ const Admin = () => {
                   <p>Status: <span>{student.Isapproved}</span></p>
                 </div>
               )
-            )) : null
+            )) : <div className="text-white p-4">No pending student requests</div>
           }
         </div>
 
         <div className="rounded-md">
         <h4 className="text-white bg-blue-gray-900 p-4 w-40">Teacher Request</h4>
         {
-            TeacherData.length > 0 ? TeacherData.map((teacher) => (
+            TeacherData && TeacherData.length > 0 ? TeacherData.map((teacher) => (
               teacher.Isapproved === "pending" && (
                 <div
                   key={teacher._id}
-                  onClick={() => docDetails("teacher", teacher._id)}
+                  onClick={() => {
+                    console.log('Clicking teacher:', teacher._id, 'Type: teacher');
+                    docDetails("teacher", teacher._id);
+                  }}
                   className="flex justify-around items-center mt-8 p-8 bg-blue-gray-600 rounded-md cursor-pointer"
                 >
                   <h1 className="text-[24px] text-1xl text-white mr-3">
@@ -202,14 +191,14 @@ const Admin = () => {
                   <p>Status: <span>{teacher.Isapproved}</span></p>
                 </div>
               )
-            )) : null
+            )) : <div className="text-white p-4">No pending teacher requests</div>
           }
         </div>
         
         <div className="rounded-md">
         <h4 className="text-white bg-red-500 p-4 w-40">Rejected Request</h4>
           {
-            TeacherData.length > 0 ? TeacherData.map((teacher) => (
+            TeacherData && TeacherData.length > 0 ? TeacherData.map((teacher) => (
               teacher.Isapproved === "rejected" && (
                 <div
                   key={teacher._id}
@@ -225,7 +214,7 @@ const Admin = () => {
             )) : null
           }
           {
-            StudentData.length > 0 ? StudentData.map((student) => (
+            StudentData && StudentData.length > 0 ? StudentData.map((student) => (
               student.Isapproved === "rejected" && (
                 <div
                   key={student._id}
@@ -241,9 +230,7 @@ const Admin = () => {
             )) : null
           }
         </div>
-        
       </div>
-
     </div>
   );
 };

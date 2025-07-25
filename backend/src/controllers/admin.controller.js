@@ -6,8 +6,8 @@ import { student, studentdocs } from "../models/student.model.js";
 import { Teacher, Teacherdocs } from "../models/teacher.model.js";
 import { contact } from "../models/contact.model.js";
 import { course } from "../models/course.model.js";
-import {Sendmail} from "../utils/Nodemailer.js"
-
+import { Sendmail } from "../utils/Nodemailer.js";
+import mongoose from "mongoose"; // ✅ ADD THIS LINE
 
 const adminSignUp = asyncHandler(async(req,res)=>{
     const {username, password} = req.body
@@ -268,93 +268,242 @@ const approveTeacher = asyncHandler(async(req,res)=>{
 })
 
 const checkStudentDocuments = asyncHandler(async(req,res)=>{
+    console.log('checkStudentDocuments called with params:', req.params);
+    
     const adminID = req.params.adminID
+    const studentID = req.params.studentID
+
+    console.log('AdminID:', adminID, 'StudentID:', studentID);
 
     if(!adminID){
-        throw new ApiError(400, "not authorized")
+        throw new ApiError(400, "Admin ID is required")
     }
     
+    if(!studentID){
+        throw new ApiError(400, "Student ID is required")
+    }
+
+    if(!mongoose.Types.ObjectId.isValid(adminID)){
+        throw new ApiError(400, "Invalid Admin ID format")
+    }
+    
+    if(!mongoose.Types.ObjectId.isValid(studentID)){
+        throw new ApiError(400, "Invalid Student ID format")
+    }
+
     const loggedAdmin = await admin.findById(adminID)
 
     if(!loggedAdmin){
-        throw new ApiError(400, "admin not found")
-    }
-    
-    const studentID = req.params.studentID
-
-    if(!studentID){
-        throw new ApiError(400, "no student ID")
+        throw new ApiError(404, "Admin not found")
     }
 
     const theStudent = await student.findById(studentID)
 
     if(!theStudent){
-        throw new ApiError(400, "student not found")
+        throw new ApiError(404, "Student not found")
     }
 
     const docID = theStudent.Studentdetails
 
+    // ✅ FIXED: Handle case where student doesn't have documents
     if(!docID){
-        throw new ApiError(400, "Documents not found, please update")
+        console.log('Student found but no documents uploaded yet');
+        
+        return res
+        .status(200)
+        .json(new ApiResponse(200, {
+            loggedAdmin, 
+            theStudent, 
+            studentDocs: null,
+            message: "Student registered but documents not uploaded yet"
+        }, "Student found but no documents uploaded"))
     }
 
     const studentDocs = await studentdocs.findById(docID)
     
     if(!studentDocs){
-        throw new ApiError(400, "failed to retrieve documents")
+        // Documents reference exists but document not found
+        console.log('Document reference exists but documents not found');
+        
+        return res
+        .status(200)
+        .json(new ApiResponse(200, {
+            loggedAdmin, 
+            theStudent, 
+            studentDocs: null,
+            message: "Document reference exists but documents not found"
+        }, "Document reference found but documents missing"))
     }
+
+    console.log('Successfully retrieved student documents');
     
     return res
     .status(200)
-    .json(new ApiResponse(200, {loggedAdmin, theStudent, studentDocs}, "documents retrieved successfully"))
-
-
+    .json(new ApiResponse(200, {
+        loggedAdmin, 
+        theStudent, 
+        studentDocs
+    }, "documents retrieved successfully"))
 })
 
 const checkTeacherDocuments = asyncHandler(async(req,res)=>{
+    console.log('checkTeacherDocuments called with params:', req.params);
+    
     const adminID = req.params.adminID
+    const teacherID = req.params.teacherID
+
+    console.log('AdminID:', adminID, 'TeacherID:', teacherID);
 
     if(!adminID){
-        throw new ApiError(400, "not authorized")
+        throw new ApiError(400, "Admin ID is required")
+    }
+
+    if(!teacherID){
+        throw new ApiError(400, "Teacher ID is required")
+    }
+
+    // ✅ FIXED: Remove the require() and use the imported mongoose
+    if(!mongoose.Types.ObjectId.isValid(adminID)){
+        throw new ApiError(400, "Invalid Admin ID format")
+    }
+    
+    if(!mongoose.Types.ObjectId.isValid(teacherID)){
+        throw new ApiError(400, "Invalid Teacher ID format")
     }
 
     const loggedAdmin = await admin.findById(adminID)
 
     if(!loggedAdmin){
-        throw new ApiError(400, "admin not found")
-    }
-
-    const teacherID = req.params.teacherID
-
-    if(!teacherID){
-        throw new ApiError(400, "no Teacher ID")
+        throw new ApiError(404, "Admin not found")
     }
 
     const theTeacher = await Teacher.findById(teacherID)
 
     if(!theTeacher){
-        throw new ApiError(400, "Teacher not found")
+        throw new ApiError(404, "Teacher not found")
     }
 
     const docID = theTeacher.Teacherdetails
 
     if(!docID){
-        throw new ApiError(400, "Documents not found, please update")
+        throw new ApiError(404, "Documents not found, please ask teacher to upload documents")
     }
 
     const teacherDocs = await Teacherdocs.findById(docID)
     
     if(!teacherDocs){
-        throw new ApiError(400, "failed to retrieve documents")
+        throw new ApiError(404, "Failed to retrieve teacher documents")
     }
+
+    console.log('Successfully retrieved teacher documents');
 
     return res
     .status(200)
     .json(new ApiResponse(200, {loggedAdmin, theTeacher, teacherDocs}, "documents retrieved successfully"))
-
-
 })
 
+const getDocumentsByType = asyncHandler(async(req, res) => {
+    console.log('getDocumentsByType called with params:', req.params);
+    
+    const { adminID, type, ID } = req.params;
+    
+    console.log('AdminID:', adminID, 'Type:', type, 'ID:', ID);
+
+    if (!adminID) {
+        throw new ApiError(400, "Admin ID is required");
+    }
+    
+    if (!ID) {
+        throw new ApiError(400, "Document ID is required");
+    }
+    
+    if (!type || (type !== 'student' && type !== 'teacher')) {
+        throw new ApiError(400, "Invalid type. Must be 'student' or 'teacher'");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(adminID)) {
+        throw new ApiError(400, "Invalid Admin ID format");
+    }
+    
+    if (!mongoose.Types.ObjectId.isValid(ID)) {
+        throw new ApiError(400, "Invalid ID format");
+    }
+
+    const loggedAdmin = await admin.findById(adminID);
+
+    if (!loggedAdmin) {
+        throw new ApiError(404, "Admin not found");
+    }
+
+    if (type === 'student') {
+        const theStudent = await student.findById(ID);
+
+        if (!theStudent) {
+            throw new ApiError(404, "Student not found");
+        }
+
+        const docID = theStudent.Studentdetails;
+
+        // ✅ Handle students without documents
+        if (!docID) {
+            console.log('Student found but no documents uploaded yet');
+            
+            return res
+                .status(200)
+                .json(new ApiResponse(200, {
+                    loggedAdmin, 
+                    theStudent, 
+                    studentDocs: null,
+                    message: "Student registered but documents not uploaded yet"
+                }, "Student found but no documents uploaded"));
+        }
+
+        const studentDocs = await studentdocs.findById(docID);
+        
+        if (!studentDocs) {
+            return res
+                .status(200)
+                .json(new ApiResponse(200, {
+                    loggedAdmin, 
+                    theStudent, 
+                    studentDocs: null,
+                    message: "Document reference exists but documents not found"
+                }, "Document reference found but documents missing"));
+        }
+
+        console.log('Successfully retrieved student documents');
+        
+        return res
+            .status(200)
+            .json(new ApiResponse(200, { loggedAdmin, theStudent, studentDocs }, "documents retrieved successfully"));
+            
+    } else if (type === 'teacher') {
+        const theTeacher = await Teacher.findById(ID);
+
+        if (!theTeacher) {
+            throw new ApiError(404, "Teacher not found");
+        }
+
+        const docID = theTeacher.Teacherdetails;
+
+        // For teachers, documents are required, so keep the original error behavior
+        if (!docID) {
+            throw new ApiError(404, "Documents not found, please ask teacher to upload documents");
+        }
+
+        const teacherDocs = await Teacherdocs.findById(docID);
+        
+        if (!teacherDocs) {
+            throw new ApiError(404, "Failed to retrieve teacher documents");
+        }
+
+        console.log('Successfully retrieved teacher documents');
+
+        return res
+            .status(200)
+            .json(new ApiResponse(200, { loggedAdmin, theTeacher, teacherDocs }, "documents retrieved successfully"));
+    }
+});
 
 const sendmessage = asyncHandler(async(req,res)=>{
     const {name, message, email} = req.body;
@@ -436,8 +585,6 @@ const toapproveCourse = asyncHandler(async(req,res)=>{
 
 })
 
-
-
 const approveCourse = asyncHandler(async(req,res)=>{
 
     const adminID = req.params.adminID
@@ -452,7 +599,6 @@ const approveCourse = asyncHandler(async(req,res)=>{
         throw new ApiError(400, "admin not found")
     }
 
-
     const courseID = req.params.courseID
 
     if(!courseID){
@@ -460,15 +606,6 @@ const approveCourse = asyncHandler(async(req,res)=>{
     }
 
     const toApprove = req.body.Isapproved
-    // const remarks = req.body.remarks || null
-    // console.log(remarks)
-    
-
-    // if (!toApprove || (toApprove != "approved" && toApprove != "rejected" && toApprove !== "reupload")) {
-    //     throw new ApiError(400, "Please choose 'approve' or 'reject' or 'reupload'");
-    // }
-
-    // const theCourse = await student.findOneAndUpdate({_id: courseID}, {$set: {Isapproved:toApprove, Remarks: remarks}},  { new: true })
 
     if(toApprove){
         const theCourse = await course.findOneAndUpdate({_id: courseID}, {$set: {isapproved:toApprove}},  { new: true })
@@ -520,9 +657,6 @@ const approveCourse = asyncHandler(async(req,res)=>{
         .status(200)
         .json(new ApiResponse(200,{},`Course rejected successfully`))
     }
-    
-
-   
-
 })
-export {adminSignUp, adminLogin, forApproval, approveStudent, approveTeacher, checkStudentDocuments, checkTeacherDocuments, adminLogout, sendmessage, allmessages,readMessage, toapproveCourse, approveCourse}
+
+export {adminSignUp, adminLogin,  getDocumentsByType, forApproval, approveStudent, approveTeacher, checkStudentDocuments, checkTeacherDocuments, adminLogout, sendmessage, allmessages,readMessage, toapproveCourse, approveCourse}
