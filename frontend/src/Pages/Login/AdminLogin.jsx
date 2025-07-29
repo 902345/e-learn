@@ -43,8 +43,9 @@ export default function AdminLogin() {
     };
 
     try {
+      console.log("Backend URL:", baseURL);
       // Send data to backend
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/login`, {
+      const response = await fetch(`${baseURL}/api/admin/login`, {
         method: 'POST',
         credentials: "include",
         headers: {
