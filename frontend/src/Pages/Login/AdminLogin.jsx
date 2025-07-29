@@ -43,7 +43,11 @@ export default function AdminLogin() {
     };
 
     try {
-      console.log("Backend URL:", baseURL);
+      if (!baseURL) {
+          console.error("VITE_BACKEND_URL is not defined!");
+      } else {
+          console.log("Using Backend URL:", baseURL);
+      }
       // Send data to backend
       const response = await fetch(`${baseURL}/api/admin/login`, {
         method: 'POST',
