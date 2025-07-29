@@ -4,6 +4,8 @@ import "./Login.css";
 import { NavLink, useNavigate } from "react-router-dom";
 import Radiobtn from "../Components/RadioBtn/Radiobtn";
 import Header from "../Home/Header/Header";
+const baseURL = import.meta.env.VITE_BACKEND_URL;
+
 
 export default function Login() {
   // State to hold user input and errors
