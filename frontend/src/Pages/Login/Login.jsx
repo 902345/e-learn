@@ -187,6 +187,13 @@ export default function Login() {
                 Log In
               </button>
             </div>
+            <button
+              type="button"
+              className="admin-login-btn"
+              onClick={() => navigate('/adminLogin')}
+              >
+                Login As Admin
+              </button>
             {err != '' && (
               <p className="text-red-400 text-sm">{err}</p>
             )}
