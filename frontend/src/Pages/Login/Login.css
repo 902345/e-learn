@@ -19,6 +19,7 @@
  background-color: #0E3A59;
  text-align: center;
  border-radius: 15px;
+ padding-bottom: 2rem;
 }
 
 .para1{
@@ -35,9 +36,11 @@
    font-size: 16px;
    letter-spacing: 1px;
 }
+
 .form{
   margin-top:40px;
 }
+
 .input-0{
     border:0;
     outline: 0;
@@ -69,8 +72,53 @@
 
 .btns-1{
   background-color: #157776;
-  padding: 10px;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 15px 20px;
   width: 200px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+}
+
+.btns-1:hover{
+  background-color: #1a8d8c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(21, 119, 118, 0.3);
+}
+
+.btns-1:active{
+  transform: translateY(0);
+}
+
+.admin-login-btn{
+  background-color: transparent;
+  color: #fbbf24;
+  border: 2px solid #fbbf24;
+  border-radius: 15px;
+  padding: 12px 20px;
+  width: 200px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.admin-login-btn:hover{
+  background-color: #fbbf24;
+  color: #0E3A59;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+}
+
+.admin-login-btn:active{
+  transform: translateY(0);
 }
 
 .radio-btn{
@@ -88,7 +136,10 @@
   color: #fff; 
 }
 
-/* .signup-link .link{
-  color: green;
-  font-size: medium;
-} */
+.error-message{
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 5px;
+  text-align: left;
+  margin-left: 15%;
+}
