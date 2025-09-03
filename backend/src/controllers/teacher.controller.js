@@ -20,7 +20,7 @@ const verifyEmail = async (Email, Firstname, createdTeacherId) => {
             }
         });
         const mailOptions = {
-            from: "kadyanparag@gmail.com",
+            from: "vikassangwanp@gmail.com",
             to: Email,
             subject: "Verify your E-mail",
             html: `<div style="text-align: center;">
@@ -40,7 +40,7 @@ const verifyEmail = async (Email, Firstname, createdTeacherId) => {
             }
         });
     } catch (error) {
-        console.log("kadyan",error);
+        console.log("sangwan",error);
         throw new ApiError(400, "Failed to send email verification");
     }
 };

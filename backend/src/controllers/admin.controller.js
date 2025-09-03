@@ -7,7 +7,7 @@ import { Teacher, Teacherdocs } from "../models/teacher.model.js";
 import { contact } from "../models/contact.model.js";
 import { course } from "../models/course.model.js";
 import { Sendmail } from "../utils/Nodemailer.js";
-import mongoose from "mongoose"; // ✅ ADD THIS LINE
+import mongoose from "mongoose"; 
 
 const adminSignUp = asyncHandler(async(req,res)=>{
     const {username, password} = req.body
