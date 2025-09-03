@@ -6,7 +6,7 @@ dotenv.config({
 import db from './database/db.js';
 import { app } from './app.js';
 
-console.log("Using Mongo URI:", process.env.MONGO_URI);  // ✅ Use correct env key
+
 
 db()
   .then(() => {
