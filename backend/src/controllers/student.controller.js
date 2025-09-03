@@ -7,9 +7,6 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { Teacher } from "../models/teacher.model.js";
 import { Sendmail } from "../utils/Nodemailer.js";
 
-
-
-
 const verifyEmail = async (Email, Firstname, createdStudent_id) => {
     try {
         const emailsender = nodemailer.createTransport({
@@ -69,7 +66,6 @@ const generateAccessAndRefreshTokens = async (stdID) =>{
     }
 }
 
- 
 const signup = asyncHandler(async (req, res) =>{
     
     const{Firstname, Lastname, Email, Password} = req.body;
@@ -88,23 +84,18 @@ const signup = asyncHandler(async (req, res) =>{
         throw new ApiError(400, "Student already exist")
     }
 
-
     const cheakTeach=await Teacher.findOne({Email:req.body.Email});
 
     if(cheakTeach){
         throw new ApiError(400, "Email Belong to Teacher");
     }
 
-    
-
-    
     const newStudent = await student.create({
         Email,
         Firstname,
         Lastname,
         Password,
         Studentdetails:null,
-
     })
 
     const createdStudent = await student.findById(newStudent._id).select(
@@ -115,13 +106,11 @@ const signup = asyncHandler(async (req, res) =>{
         throw new ApiError(501, "Student registration failed")
     }
     
-
     await verifyEmail(Email, Firstname, newStudent._id);
 
     return res.status(200).json(
         new ApiResponse(200, createdStudent, "Signup successfull")
     )
-
 })
 
 const mailVerified = asyncHandler(async(req,res)=>{
@@ -142,12 +131,9 @@ const mailVerified = asyncHandler(async(req,res)=>{
         `);
 } )
 
-
 const login = asyncHandler(async(req,res) => {
 
     const { Email, Password } = req.body;
-
-
 
     if([Email, Password].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required");
@@ -173,7 +159,6 @@ const login = asyncHandler(async(req,res) => {
 
     const tempStd = StdLogin._id
 
-    
     const {Accesstoken, Refreshtoken} =  await generateAccessAndRefreshTokens(tempStd)
 
     const loggedInStd = await student.findById(tempStd).select("-Password -Refreshtoken")
@@ -194,7 +179,6 @@ const login = asyncHandler(async(req,res) => {
             }, "logged in"
             )
     )
-
 })
 
 const logout = asyncHandler(async(req,res)=>{
@@ -231,7 +215,13 @@ const getStudent = asyncHandler(async(req,res)=>{
     .status(200)
     .json(new ApiResponse(200, user, "Student is logged in"))
 })
+
 const addStudentDetails = asyncHandler(async(req, res)=>{
+    console.log("=== Add Student Details Debug ===");
+    console.log("Request body:", req.body);
+    console.log("Request files:", req.files);
+    console.log("Student ID from params:", req.params.id);
+    console.log("Student ID from middleware:", req.Student._id);
 
     const id = req.params.id
     if(req.Student._id != id){
@@ -240,21 +230,31 @@ const addStudentDetails = asyncHandler(async(req, res)=>{
 
     const {Phone, Address, Highesteducation, SecondarySchool, HigherSchool, SecondaryMarks, HigherMarks}  = req.body
 
-    if ([Phone, Address, Highesteducation, SecondarySchool, HigherSchool, SecondaryMarks, HigherMarks].some((field) => field?.trim() === "")) {
+    // Fixed validation - convert to string before trimming
+    if ([Phone, Address, Highesteducation, SecondarySchool, HigherSchool, SecondaryMarks, HigherMarks].some((field) => !field || String(field).trim() === "")) {
         throw new ApiError(400, "All fields are required");
     }
 
+    // Check if phone already exists
     const alreadyExist = await studentdocs.findOne({Phone})
-
     if(alreadyExist){
         throw new ApiError(400, "phone number already exists")
     }
 
+    // Debug file paths
+    console.log("Files received:");
+    console.log("Aadhaar files:", req.files?.Aadhaar);
+    console.log("Secondary files:", req.files?.Secondary);
+    console.log("Higher files:", req.files?.Higher);
+
     const AadhaarLocalPath = req.files?.Aadhaar?.[0]?.path;
-
     const SecondaryLocalPath = req.files?.Secondary?.[0]?.path;
+    const HigherLocalPath = req.files?.Higher?.[0]?.path;
 
-    const HigherLocalPath = req.files?.Higher?.[0]?.path
+    console.log("File paths:");
+    console.log("Aadhaar path:", AadhaarLocalPath);
+    console.log("Secondary path:", SecondaryLocalPath);
+    console.log("Higher path:", HigherLocalPath);
 
     if(!AadhaarLocalPath){
         throw new ApiError(400, "Aadhaar is required")
@@ -268,42 +268,82 @@ const addStudentDetails = asyncHandler(async(req, res)=>{
         throw new ApiError(400, "Higher marksheet is required")
     }
 
-    const Aadhaar = await uploadOnCloudinary(AadhaarLocalPath)
-    const Secondary = await uploadOnCloudinary(SecondaryLocalPath)
+    console.log("Starting Cloudinary uploads...");
 
-    const Higher = await uploadOnCloudinary(HigherLocalPath)
+    try {
+        // Upload files to Cloudinary
+        console.log("Uploading Aadhaar...");
+        const Aadhaar = await uploadOnCloudinary(AadhaarLocalPath);
+        console.log("Aadhaar upload result:", Aadhaar);
 
-    const studentdetails = await studentdocs.create({
-        Phone,
-        Address,
-        Highesteducation,
-        SecondarySchool,
-        HigherSchool,
-        SecondaryMarks,
-        HigherMarks,
-        Aadhaar: Aadhaar.url,
-        Secondary: Secondary.url,
-        Higher: Higher.url,
-    })
+        console.log("Uploading Secondary...");
+        const Secondary = await uploadOnCloudinary(SecondaryLocalPath);
+        console.log("Secondary upload result:", Secondary);
 
+        console.log("Uploading Higher...");
+        const Higher = await uploadOnCloudinary(HigherLocalPath);
+        console.log("Higher upload result:", Higher);
 
-    //const loggedstd = await student.findByIdAndUpdate(id, {})
+        // Validate upload results
+        if(!Aadhaar || !Aadhaar.url){
+            throw new ApiError(500, "Failed to upload Aadhaar to Cloudinary");
+        }
 
-    const theStudent = await student.findOneAndUpdate({_id: id}, {$set: {Isapproved:"pending", Studentdetails: studentdetails._id}},  { new: true }).select("-Password -Refreshtoken")
-    
-    
-    if(!theStudent){
-        throw new ApiError(400,"faild to approve or reject || student not found")
+        if(!Secondary || !Secondary.url){
+            throw new ApiError(500, "Failed to upload Secondary marksheet to Cloudinary");
+        }
+
+        if(!Higher || !Higher.url){
+            throw new ApiError(500, "Failed to upload Higher marksheet to Cloudinary");
+        }
+
+        console.log("All uploads successful, creating student details...");
+
+        // Create student details document
+        const studentdetails = await studentdocs.create({
+            Phone: Number(Phone), // Ensure Phone is a number
+            Address,
+            Highesteducation,
+            SecondarySchool,
+            HigherSchool,
+            SecondaryMarks: Number(SecondaryMarks), // Ensure marks are numbers
+            HigherMarks: Number(HigherMarks),
+            Aadhaar: Aadhaar.url,
+            Secondary: Secondary.url,
+            Higher: Higher.url,
+        });
+
+        console.log("Student details created:", studentdetails);
+
+        // Update student document
+        const theStudent = await student.findOneAndUpdate(
+            {_id: id}, 
+            {$set: {Isapproved:"pending", Studentdetails: studentdetails._id}},  
+            { new: true }
+        ).select("-Password -Refreshtoken");
+        
+        if(!theStudent){
+            throw new ApiError(400,"Failed to update student or student not found")
+        }
+
+        console.log("Student updated successfully:", theStudent);
+
+        return res
+        .status(200)
+        .json(new ApiResponse(200, theStudent, "Documents uploaded successfully"))
+
+    } catch (uploadError) {
+        console.error("Upload error:", uploadError);
+        
+        // If it's already an ApiError, re-throw it
+        if (uploadError instanceof ApiError) {
+            throw uploadError;
+        }
+        
+        // Otherwise, wrap it in an ApiError
+        throw new ApiError(500, `Failed to upload documents: ${uploadError.message}`);
     }
-
-    return res
-    .status(200)
-    .json(new ApiResponse(200, theStudent, "documents uploaded successfully"))
-
 })
-
-
-
 
 const forgetPassword=asyncHandler(async(req,res)=>{
 
@@ -349,11 +389,7 @@ const forgetPassword=asyncHandler(async(req,res)=>{
 
         throw new ApiError(404,"operation failed!!");
     }
-
-
 })
-
-
 
 const  resetPassword= asyncHandler(async (req, res) => {
     const { token } = req.params;
@@ -363,7 +399,6 @@ const  resetPassword= asyncHandler(async (req, res) => {
         throw new ApiError(400,"password does not match")
     }
         
-
     try {
         const user = await student.findOne({
             forgetPasswordToken:token,
@@ -374,8 +409,6 @@ const  resetPassword= asyncHandler(async (req, res) => {
         if (!user) {
             throw new ApiError(400, 'Token is invalid or expired. Please try again.');
         }
-
-   
 
         user.Password = password; 
         user.forgetPasswordExpiry = undefined;
@@ -392,8 +425,6 @@ const  resetPassword= asyncHandler(async (req, res) => {
         throw new ApiError(500, 'Internal server error!!!');
     }
 });
-
-
 
 export{
     signup,
