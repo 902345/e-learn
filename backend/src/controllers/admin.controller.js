@@ -154,7 +154,6 @@ const forApproval = asyncHandler(async(req,res)=>{
 })
 
 const approveStudent = asyncHandler(async(req,res)=>{
-
     const adminID = req.params.adminID
 
     if(!adminID){
@@ -167,50 +166,63 @@ const approveStudent = asyncHandler(async(req,res)=>{
         throw new ApiError(400, "admin not found")
     }
 
-
     const studentID = req.params.studentID
-
 
     if(!studentID){
         throw new ApiError(400, "student id is required")
     }
 
     const toApprove = req.body.Isapproved
-
     const email = req.body.email
-
     const remarks = req.body.remarks || null
 
-    if (!toApprove || (toApprove != "approved" && toApprove != "rejected" && toApprove !== "reupload")) {
-        throw new ApiError(400, "Please choose 'approve' or 'reject' or 'reupload'");
+    if (!toApprove || (toApprove !== "approved" && toApprove !== "rejected" && toApprove !== "reupload")) {
+        throw new ApiError(400, "Please choose 'approved' or 'rejected' or 'reupload'");
     }
 
-    const theStudent = await student.findOneAndUpdate({_id: studentID}, {$set: {Isapproved:toApprove, Remarks: remarks}},  { new: true })
+    // Fixed: Check if email is provided
+    if (!email) {
+        throw new ApiError(400, "Email is required for sending notification");
+    }
+
+    const theStudent = await student.findOneAndUpdate(
+        {_id: studentID}, 
+        {$set: {Isapproved: toApprove, Remarks: remarks}},  
+        { new: true }
+    )
     
     if(!theStudent){
-        throw new ApiError(400,"faild to approve or reject || student not found")
+        throw new ApiError(400,"failed to approve or reject || student not found")
     }
 
-    
     console.log("email", email);
 
-    await Sendmail(email, `Document Verification Status`, 
-        `<html>
+    // Fixed: Better email template
+    const emailSubject = `Document Verification Status - ${toApprove.charAt(0).toUpperCase() + toApprove.slice(1)}`;
+    const emailBody = `
+        <html>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h1 style="color: #4CAF50; text-align: center;">Document Verification Status!</h1>
-            <p style="font-size: 16px; text-align: center;">We have completed the verification process for the documents you submitted. Your document verification status is: ${toApprove}</p>
-            <p style="font-size: 16px;">Remarks: ${remarks}</p>
+            <h1 style="color: #4CAF50; text-align: center;">Document Verification Status</h1>
+            <p style="font-size: 16px; text-align: center;">Dear ${theStudent.Firstname || 'Student'},</p>
+            <p style="font-size: 16px; text-align: center;">We have completed the verification process for the documents you submitted.</p>
+            <p style="font-size: 18px; text-align: center; font-weight: bold;">Status: <span style="color: ${toApprove === 'approved' ? '#4CAF50' : '#f44336'}">${toApprove.toUpperCase()}</span></p>
+            ${remarks ? `<p style="font-size: 16px;"><strong>Remarks:</strong> ${remarks}</p>` : ''}
             <p style="font-size: 16px;">Best regards,</p>
             <p style="font-size: 16px;"><strong>The Shiksharthee Team</strong></p>
             <p style="font-size: 14px;">&copy; 2024 Shiksharthee. All rights reserved.</p>
             </body>
-        </html>`
-    )
+        </html>`;
+
+    try {
+        await Sendmail(email, emailSubject, emailBody);
+    } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+        // Don't throw error - approval should still succeed even if email fails
+    }
 
     return res
     .status(200)
-    .json(new ApiResponse(200, theStudent, `task done successfully`))
-
+    .json(new ApiResponse(200, theStudent, `Student ${toApprove} successfully`))
 })
 
 const approveTeacher = asyncHandler(async(req,res)=>{
@@ -530,20 +542,22 @@ const sendmessage = asyncHandler(async(req,res)=>{
 })
 
 const allmessages = asyncHandler(async(req,res)=>{
+    // Optional: Add admin verification if needed
+    // const adminID = req.admin?._id; // if using auth middleware
     
     const messages = await contact.find({
-        status:false,
-    }).sort({ _id: -1 });
+        status: false,
+    }).sort({ createdAt: -1 }); // Fixed: better sorting field
     
-    if(!messages){
+    if(!messages || messages.length === 0){
         return res
         .status(200)
-        .json(new ApiResponse(200, {}, "no new messages"))
+        .json(new ApiResponse(200, [], "no new messages"))
     }
     
     return res
     .status(200)
-    .json(new ApiResponse(200, messages, "messages fetched"))
+    .json(new ApiResponse(200, messages, "messages fetched successfully"))
 })
 
 const readMessage = asyncHandler(async(req,res)=>{

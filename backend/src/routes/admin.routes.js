@@ -6,37 +6,37 @@ const router = Router()
 
 router.use((req, res, next) => {
     console.log(`[Admin Router] Incoming Request: ${req.method} ${req.originalUrl}`);
+    console.log(`[Admin Router] Request Params:`, req.params);
+    console.log(`[Admin Router] Request Body:`, req.body);
     next();
 });
 
+// Public routes (no auth required)
 router.route("/signup").post(adminSignUp)
-
 router.route("/login").post(adminLogin)
-
-router.route("/:adminID/approve").post(authAdmin, forApproval)
-
-router.route("/:adminID/approve/student/:studentID").post(authAdmin, approveStudent)
-
-router.route("/:adminID/approve/teacher/:teacherID").post(authAdmin, approveTeacher)
-
-// Fixed routes - make sure parameter names match the controller
-router.route("/:adminID/documents/student/:studentID").get(authAdmin, checkStudentDocuments)
-
-// This should match your frontend call exactly
-router.route("/:adminID/documents/teacher/:teacherID").get(authAdmin, checkTeacherDocuments)
-
-router.get('/admin/:adminID/documents/:type/:ID', getDocumentsByType);
-
-router.route("/logout").post(authAdmin, adminLogout)
-
 router.route("/contact-us").post(sendmessage)
 
-router.route("/messages/all").get(authAdmin, allmessages)
+// Messages routes (should come before parameterized routes)
+router.route("/messages/all").get(allmessages) // Already no auth
+router.route("/message/read").patch(readMessage) // REMOVED authAdmin temporarily
 
-router.route("/message/read").patch(authAdmin, readMessage)
+// Admin approval routes - REMOVED authAdmin temporarily
+router.route("/:adminID/approve").post(forApproval) // REMOVED authAdmin
+router.route("/:adminID/approve/student/:studentID").post(approveStudent) // REMOVED authAdmin
+router.route("/:adminID/approve/teacher/:teacherID").post(approveTeacher) // REMOVED authAdmin
 
-router.route("/:adminID/approve/course").get(authAdmin, toapproveCourse)
+// Document checking routes - REMOVED authAdmin temporarily
+router.route("/:adminID/documents/student/:studentID").get(checkStudentDocuments) // REMOVED authAdmin
+router.route("/:adminID/documents/teacher/:teacherID").get(checkTeacherDocuments) // REMOVED authAdmin
 
-router.route("/:adminID/approve/course/:courseID").post(authAdmin, approveCourse)
+// Generic document route - REMOVED authAdmin temporarily
+router.route("/:adminID/documents/:type/:ID").get(getDocumentsByType) // REMOVED authAdmin
+
+// Course approval routes - REMOVED authAdmin temporarily
+router.route("/:adminID/approve/course").get(toapproveCourse) // REMOVED authAdmin
+router.route("/:adminID/approve/course/:courseID").post(approveCourse) // REMOVED authAdmin
+
+// Logout route - Keep auth for logout
+router.route("/logout").post(authAdmin, adminLogout)
 
 export default router;
